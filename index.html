@@ -23,21 +23,23 @@
     const ctx = canvas.getContext('2d');
 
     // Game Variables
-    let birdY = 200, birdVelocity = 0, gravity = 0.5, jumpStrength = -8;
+    let birdY = 200, birdHeight = 30;
     let pipes = [], pipeSpeed = 2, pipeWidth = 50;
     let gap = randomGap(), minGap = 150, maxGap = 225; // Gap will vary between 150 and 225
     let score = 0, isGameOver = false;
+    let mouseY = birdY; // Initialize mouse position
 
-    // Event listener for jump
-    document.addEventListener('keydown', () => {
-      if (!isGameOver) birdVelocity = jumpStrength;
-      else resetGame();
+    // Event listener for mouse movement
+    document.addEventListener('mousemove', (event) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseY = event.clientY - rect.top; // Map mouse position to canvas coordinates
     });
 
     // Draw Bird
     function drawBird() {
       ctx.fillStyle = 'yellow';
-      ctx.fillRect(50, birdY, 30, 30); // Simple square bird
+      birdY += (mouseY - birdY) * 0.1; // Smooth following
+      ctx.fillRect(50, birdY, 30, birdHeight); // Simple square bird
     }
 
     // Draw Pipes
@@ -62,10 +64,10 @@
 
     // Check Collision
     function checkCollision() {
-      if (birdY > canvas.height - 30 || birdY < 0) return true; // Hit ground or top
+      if (birdY > canvas.height - birdHeight || birdY < 0) return true; // Hit ground or top
       return pipes.some(pipe => 
         (50 + 30 > pipe.x && 50 < pipe.x + pipeWidth) && 
-        (birdY < pipe.top || birdY + 30 > pipe.top + pipe.gap)
+        (birdY < pipe.top || birdY + birdHeight > pipe.top + pipe.gap)
       );
     }
 
@@ -87,9 +89,6 @@
     // Game Loop
     function update() {
       if (isGameOver) return;
-
-      birdVelocity += gravity;
-      birdY += birdVelocity;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
       updatePipes();
@@ -116,7 +115,6 @@
     // Reset Game
     function resetGame() {
       birdY = 200;
-      birdVelocity = 0;
       pipes = [];
       score = 0;
       isGameOver = false;
